@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Visolix Downloader</title>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:system-ui;display:flex;justify-content:center;padding:20px}
+.card{width:100%;max-width:540px;background:#111;border:1px solid #222;border-radius:20px;padding:22px}
+h2{text-align:center}
+input{width:100%;box-sizing:border-box;padding:15px;border-radius:12px;border:1px solid #333;background:#1a1a1a;color:#fff;font-size:16px}
+button{width:100%;margin-top:12px;padding:15px;border-radius:12px;border:0;background:#fff;color:#000;font-weight:900;font-size:16px;cursor:pointer}
+.item{margin-top:10px;background:#1e1e1e;padding:12px;border-radius:10px;display:flex;justify-content:space-between;align-items:center}
+.item a{background:#fff;color:#000;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:800}
+#status{text-align:center;color:#888;margin-top:10px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="card">
+<h2>⬇️ Visolix Downloader</h2>
+<input id="url" placeholder="Paste YouTube / Instagram / TikTok link">
+<button onclick="go()">Get Download Links</button>
+<div id="status"></div>
+<div id="result"></div>
+</div>
+<script>
+async function go(){
+  const u=document.getElementById('url').value.trim();
+  if(!u) return alert('Paste link');
+  const st=document.getElementById('status');
+  const res=document.getElementById('result');
+  st.textContent='⏳ Fetching from server...'; res.innerHTML='';
+  try{
+    const r=await fetch('/api/download?url='+encodeURIComponent(u));
+    const j=await r.json();
+    console.log(j);
+    if(j.error){ st.textContent='❌ '+j.error; return; }
+    let html='';
+    if(j.picker){
+      j.picker.forEach(p=>{
+        html+=`<div class="item"><span>${p.type||'video'} ${p.ext||''}</span><a href="${p.url}" target="_blank">Download</a></div>`;
+      });
+    }else if(j.url){
+      html+=`<div class="item"><span>Video HD</span><a href="${j.url}" target="_blank">Download</a></div>`;
+      if(j.audio) html+=`<div class="item"><span>Audio</span><a href="${j.audio}" target="_blank">Download</a></div>`;
+    }
+    res.innerHTML=html||'<p>No links found, try public video</p>';
+    st.textContent='✅ Done';
+  }catch(e){
+    st.textContent='❌ Server error, try again';
+  }
+}
+</script>
+</body></html>
